@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>血压脉搏记录器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background:  linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow:  0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom:  10px;
+        }
+
+        .input-section {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom:  20px;
+        }
+
+        .input-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-field label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+
+        . input-field input {
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .input-field input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color:  white;
+            margin:  5px;
+        }
+
+        . btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .tab {
+            flex: 1;
+            padding:  15px;
+            text-align:  center;
+            cursor: pointer;
+            font-weight: 600;
+            color: #6c757d;
+            transition:  all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: white;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+            min-height: 400px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .record-list {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align:  left;
+            border-bottom:  1px solid #dee2e6;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color:  white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .delete-btn:hover {
+            background: #c82333;
+        }
+
+        .stats-filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition:  all 0.3s;
+        }
+
+        .filter-btn. active {
+            background: #667eea;
+            color: white;
+        }
+
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom:  30px;
+        }
+
+        . stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card h3 {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        . stat-card . value {
+            font-size:  28px;
+            font-weight: bold;
+        }
+
+        #chart {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .footer {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state-icon {
+            font-size:  64px;
+            margin-bottom:  20px;
+            opacity: 0.3;
+        }
+
+        @media (max-width: 600px) {
+            .input-group {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                border-radius: 0;
+            }
+
+            body {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💓 血压脉搏记录器</h1>
+            <p>记录健康，关注生活</p>
+        </div>
+
+        <div class="input-section">
+            <div class="input-group">
+                <div class="input-field">
+                    <label>高压 (mmHg)</label>
+                    <input type="number" id="systolic" placeholder="例如:  120" min="0">
+                </div>
+                <div class="input-field">
+                    <label>低压 (mmHg)</label>
+                    <input type="number" id="diastolic" placeholder="例如: 80" min="0">
+                </div>
+                <div class="input-field">
+                    <label>脉搏 (次/分)</label>
+                    <input type="number" id="pulse" placeholder="例如: 75" min="0">
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="addRecord()">📝 录入数据</button>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('list')">📋 记录列表</div>
+            <div class="tab" onclick="switchTab('stats')">📊 统计分析</div>
+        </div>
+
+        <div id="list" class="tab-content active">
+            <div class="record-list">
+                <table id="recordTable">
+                    <thead>
+                        <tr>
+                            <th>时间</th>
+                            <th>高压</th>
+                            <th>低压</th>
+                            <th>脉搏</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recordBody">
+                    </tbody>
+                </table>
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <div class="empty-state-icon">📝</div>
+                    <h3>暂无记录</h3>
+                    <p>开始录入您的第一条血压数据吧！</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="stats" class="tab-content">
+            <div class="stats-filters">
+                <button class="filter-btn active" onclick="filterStats('week')">最近一周</button>
+                <button class="filter-btn" onclick="filterStats('month')">最近一月</button>
+                <button class="filter-btn" onclick="filterStats('all')">全部数据</button>
+            </div>
+            <div class="stats-cards" id="statsCards">
+            </div>
+            <canvas id="chart" width="400" height="200"></canvas>
+        </div>
+
+        <div class="footer">
+            <button class="btn btn-secondary" onclick="exportData()">📤 导出数据库</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📥 导入数据库</button>
+            <input type="file" id="importFile" style="display: none;" accept=".json" onchange="importData(event)">
+        </div>
+    </div>
+
+    <script>
+        // IndexedDB 设置
+        let db;
+        const DB_NAME = 'BloodPressureDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'records';
+
+        // 初始化数据库
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve(db);
+                };
+
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames. contains(STORE_NAME)) {
+                        const objectStore = db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+                        objectStore.createIndex('timestamp', 'timestamp', { unique:  false });
+                    }
+                };
+            });
+        }
+
+        // 添加记录
+        async function addRecord() {
+            const systolic = document.getElementById('systolic').value;
+            const diastolic = document.getElementById('diastolic').value;
+            const pulse = document.getElementById('pulse').value;
+
+            if (!systolic || ! diastolic || !pulse) {
+                alert('请填写所有数据！');
+                return;
+            }
+
+            const record = {
+                systolic: parseInt(systolic),
+                diastolic: parseInt(diastolic),
+                pulse: parseInt(pulse),
+                timestamp: new Date().toISOString()
+            };
+
+            const transaction = db.transaction([STORE_NAME], 'readwrite');
+            const objectStore = transaction.objectStore(STORE_NAME);
+            const request = objectStore.add(record);
+
+            request.onsuccess = () => {
+                document.getElementById('systolic').value = '';
+                document.getElementById('diastolic').value = '';
+                document.getElementById('pulse').value = '';
+                loadRecords();
+                alert('✅ 数据录入成功！');
+            };
+
+            request.onerror = () => {
+                alert('❌ 录入失败，请重试！');
+            };
+        }
+
+        // 加载记录
+        async function loadRecords() {
+            const transaction = db.transaction([STORE_NAME], 'readonly');
+            const objectStore = transaction.objectStore(STORE_NAME);
+            const request = objectStore.getAll();
+
+            request.onsuccess = () => {
+                const records = request.result. sort((a, b) => 
+                    new Date(b.timestamp) - new Date(a.timestamp)
+                );
+                displayRecords(records);
+            };
+        }
+
+        // 显示记录
+        function displayRecords(records) {
+            const tbody = document.getElementById('recordBody');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (records.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style. display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            tbody.innerHTML = records.map(record => `
+                <tr>
+                    <td>${formatDateTime(record.timestamp)}</td>
+                    <td>${record. systolic} mmHg</td>
+                    <td>${record.diastolic} mmHg</td>
+                    <td>${record. pulse} 次/分</td>
+                    <td><button class="delete-btn" onclick="deleteRecord(${record.id})">删除</button></td>
+                </tr>
+            `).join('');
+        }
+
+        // 删除记录
+        async function deleteRecord(id) {
+            if (! confirm('确定要删除这条记录吗？')) return;
+
+            const transaction = db. transaction([STORE_NAME], 'readwrite');
+            const objectStore = transaction.objectStore(STORE_NAME);
+            const request = objectStore.delete(id);
+
+            request.onsuccess = () => {
+                loadRecords();
+                alert('✅ 删除成功！');
+            };
+        }
+
+        // 格式化日期时间
+        function formatDateTime(timestamp) {
+            const date = new Date(timestamp);
+            const year = date.getFullYear();
+            const month = String(date. getMonth() + 1).padStart(2, '0');
+            const day = String(date. getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hours}:${minutes}`;
+        }
+
+        // 切换标签
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+
+            if (tabName === 'stats') {
+                filterStats('week');
+            }
+        }
+
+        // 统计过滤
+        let currentFilter = 'week';
+        async function filterStats(period) {
+            currentFilter = period;
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const transaction = db. transaction([STORE_NAME], 'readonly');
+            const objectStore = transaction.objectStore(STORE_NAME);
+            const request = objectStore.getAll();
+
+            request.onsuccess = () => {
+                let records = request.result;
+                const now = new Date();
+
+                if (period === 'week') {
+                    const weekAgo = new Date(now. getTime() - 7 * 24 * 60 * 60 * 1000);
+                    records = records.filter(r => new Date(r.timestamp) >= weekAgo);
+                } else if (period === 'month') {
+                    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                    records = records.filter(r => new Date(r.timestamp) >= monthAgo);
+                }
+
+                displayStats(records);
+                drawChart(records);
+            };
+        }
+
+        // 显示统计
+        function displayStats(records) {
+            const statsCards = document.getElementById('statsCards');
+            
+            if (records.length === 0) {
+                statsCards. innerHTML = '<div class="empty-state"><p>该时间段暂无数据</p></div>';
+                return;
+            }
+
+            const avgSystolic = Math.round(records.reduce((sum, r) => sum + r.systolic, 0) / records.length);
+            const avgDiastolic = Math.round(records.reduce((sum, r) => sum + r.diastolic, 0) / records.length);
+            const avgPulse = Math.round(records.reduce((sum, r) => sum + r.pulse, 0) / records.length);
+
+            statsCards.innerHTML = `
+                <div class="stat-card">
+                    <h3>平均高压</h3>
+                    <div class="value">${avgSystolic}</div>
+                    <p>mmHg</p>
+                </div>
+                <div class="stat-card">
+                    <h3>平均低压</h3>
+                    <div class="value">${avgDiastolic}</div>
+                    <p>mmHg</p>
+                </div>
+                <div class="stat-card">
+                    <h3>平均脉搏</h3>
+                    <div class="value">${avgPulse}</div>
+                    <p>次/分</p>
+                </div>
+            `;
+        }
+
+        // 绘制图表
+        function drawChart(records) {
+            const canvas = document.getElementById('chart');
+            const ctx = canvas.getContext('2d');
+            
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas. height);
+
+            if (records.length === 0) {
+                ctx.fillStyle = '#6c757d';
+                ctx. font = '16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('暂无数据', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
+            // 排序记录
+            records = records.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+            // 设置边距
+            const padding = 50;
+            const chartWidth = canvas.width - 2 * padding;
+            const chartHeight = canvas.height - 2 * padding;
+
+            // 找到最大值和最小值
+            const maxValue = Math.max(
+                ...records.map(r => Math.max(r.systolic, r.diastolic, r.pulse))
+            );
+            const minValue = Math.min(
+                ...records.map(r => Math.min(r.systolic, r.diastolic, r.pulse))
+            );
+
+            const valueRange = maxValue - minValue;
+
+            // 绘制坐标轴
+            ctx. strokeStyle = '#dee2e6';
+            ctx. lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, canvas.height - padding);
+            ctx.lineTo(canvas.width - padding, canvas.height - padding);
+            ctx.stroke();
+
+            // 绘制数据点和线条
+            const drawLine = (data, color) => {
+                ctx.strokeStyle = color;
+                ctx.fillStyle = color;
+                ctx. lineWidth = 2;
+                ctx.beginPath();
+
+                data.forEach((value, index) => {
+                    const x = padding + (chartWidth / (data.length - 1 || 1)) * index;
+                    const y = canvas.height - padding - ((value - minValue) / valueRange) * chartHeight;
+
+                    if (index === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+
+                    // 绘制数据点
+                    ctx.beginPath();
+                    ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                    ctx. fill();
+                    ctx.closePath();
+                    ctx.beginPath();
+                    if (index < data.length - 1) {
+                        ctx.moveTo(x, y);
+                    }
+                });
+
+                ctx.stroke();
+            };
+
+            // 绘制三条曲线
+            drawLine(records. map(r => r.systolic), '#dc3545');
+            drawLine(records.map(r => r. diastolic), '#007bff');
+            drawLine(records.map(r => r. pulse), '#28a745');
+
+            // 绘制图例
+            ctx.font = '12px sans-serif';
+            const legends = [
+                { text: '高压', color: '#dc3545' },
+                { text: '低压', color:  '#007bff' },
+                { text: '脉搏', color: '#28a745' }
+            ];
+
+            legends. forEach((legend, index) => {
+                const x = canvas.width - padding - 100;
+                const y = padding + index * 20;
+                
+                ctx.fillStyle = legend. color;
+                ctx.fillRect(x, y - 8, 15, 3);
+                ctx.fillStyle = '#495057';
+                ctx.fillText(legend.text, x + 20, y);
+            });
+        }
+
+        // 导出数据
+        async function exportData() {
+            const transaction = db.transaction([STORE_NAME], 'readonly');
+            const objectStore = transaction.objectStore(STORE_NAME);
+            const request = objectStore.getAll();
+
+            request. onsuccess = () => {
+                const data = request.result;
+                const json = JSON.stringify(data, null, 2);
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL. createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `blood-pressure-backup-${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                alert('✅ 数据导出成功！');
+            };
+        }
+
+        // 导入数据
+        async function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (! confirm(`确定要导入 ${data.length} 条记录吗？这将覆盖现有数据！`)) {
+                        return;
+                    }
+
+                    // 清空现有数据
+                    const clearTransaction = db.transaction([STORE_NAME], 'readwrite');
+                    const clearStore = clearTransaction.objectStore(STORE_NAME);
+                    await clearStore.clear();
+
+                    // 导入新数据
+                    const transaction = db.transaction([STORE_NAME], 'readwrite');
+                    const objectStore = transaction.objectStore(STORE_NAME);
+
+                    for (const record of data) {
+                        delete record.id; // 删除旧的 ID，让数据库自动生成新 ID
+                        objectStore.add(record);
+                    }
+
+                    transaction.oncomplete = () => {
+                        loadRecords();
+                        alert('✅ 数据导入成功！');
+                    };
+
+                    transaction.onerror = () => {
+                        alert('❌ 数据导入失败！');
+                    };
+
+                } catch (error) {
+                    alert('❌ 文件格式错误！');
+                }
+            };
+
+            reader.readAsText(file);
+            event.target.value = ''; // 重置文件输入
+        }
+
+        // 初始化应用
+        (async function init() {
+            await initDB();
+            loadRecords();
+        })();
+    </script>
+</body>
+</html>
